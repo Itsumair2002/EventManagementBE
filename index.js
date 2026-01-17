@@ -1,7 +1,7 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
-
+const cors = require("cors");
 const categoryRoutes = require("./src/routes/category.routes");
 const authRoutes = require("./src/routes/auth.routes");
 const eventRoutes = require("./src/routes/event.routes");
@@ -9,6 +9,8 @@ const eventRoutes = require("./src/routes/event.routes");
 dotenv.config();
 
 const app = express();
+app.use(cors());
+//app.options("*", cors());
 app.use(express.json());
 
 // MongoDB connection
