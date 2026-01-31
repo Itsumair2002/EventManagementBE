@@ -65,8 +65,40 @@ exports.loginUser = async (req, res) => {
         email: user.email,
         role: user.role,
       },
+      status_code:200
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
+
+
+// const createAdmin = async () => {
+//   try {
+//     const adminEmail = "admin@yopmail.com";
+
+//     const existingAdmin = await User.findOne({ email: adminEmail });
+//     if (existingAdmin) {
+//       console.log("Admin already exists");
+//       process.exit();
+//     }
+
+//     const hashedPassword = await bcrypt.hash("12345", 10);
+
+//     await User.create({
+//       fullName: "Admin",
+//       email: adminEmail,
+//       phoneNumber: "9999999999",
+//       passwordHash: hashedPassword,
+//       role: "admin",
+//     });
+
+//     console.log("✅ Admin created successfully");
+//     process.exit();
+//   } catch (error) {
+//     console.error(error);
+//     process.exit(1);
+//   }
+// };
+
+// createAdmin();
