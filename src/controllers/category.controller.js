@@ -24,6 +24,23 @@ exports.getAllCategory=async(req,res)=>{
         res.status(500).json({message:error.message})
     }
 }
+
+exports.getSingleCategory=async(req,res)=>{
+    try{
+      const{id}=req?.params
+      console.log("id",id);
+      
+        const category=await Category.findById(id)
+        if(category){
+            res.status(200).json({categories:category,message:"Category fetch successfully",status_code:200})
+        }
+        else{
+            res.status(400).json({message:"category not found",status_code:400})
+        }
+    }catch(error){
+        res.status(500).json({message:error.message})
+    }
+}
 exports.updateCategory=async(req,res)=>{
   try{
     const updatedCategoryData=await Category.findByIdAndUpdate(
@@ -39,6 +56,7 @@ exports.updateCategory=async(req,res)=>{
     res.status(200).json({
       category: updatedCategoryData,
       message: "Category updated successfully",
+      status_code:200
     });
   } catch (error) {
     res.status(400).json({
