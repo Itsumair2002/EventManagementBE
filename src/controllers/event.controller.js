@@ -1,12 +1,60 @@
 const Event = require("../models/events.model");
 
 // CREATE EVENT
+// exports.createevent = async (req, res) => {
+//   try {
+//     const event = await Event.create(req.body);
+
+//     res.status(201).json({
+//       data: event,
+//       message: "Event created successfully",
+//       status_code: 201,
+//     });
+//   } catch (error) {
+//     res.status(400).json({
+//       message: error.message,
+//     });
+//   }
+// };
+
+
 exports.createevent = async (req, res) => {
   try {
-    const event = await Event.create(req.body);
+    const {
+      eventName,
+      description,
+      category,
+      eventDate,
+      venue,
+      location,
+      totalSeats,
+      availableSeats,
+      price,
+      status,
+    } = req.body;
+
+    const newEvent = new Event({
+      eventName,
+      description,
+      category, // ObjectId
+      eventDate,
+      venue,
+      location,
+      totalSeats,
+      availableSeats,
+      price,
+      status,
+      createdBy: req.user?.id, // from token
+
+      imageUrl: req.file
+        ? req.file.filename
+        : null,
+    });
+
+    const savedEvent = await newEvent.save();
 
     res.status(201).json({
-      data: event,
+      data: savedEvent,
       message: "Event created successfully",
       status_code: 201,
     });
@@ -17,10 +65,38 @@ exports.createevent = async (req, res) => {
   }
 };
 
+
+
 // GET ALL EVENTS
+// exports.getAllEvent = async (req, res) => {
+//   try {
+//     const allEvents = await Event.find();
+
+//     if (!allEvents.length) {
+//       return res.status(404).json({
+//         message: "No events found",
+//       });
+//     }
+
+//     res.status(200).json({
+//       events: allEvents,
+//       message: "Events fetched successfully",
+//       status_code: 200,
+//     });
+//   } catch (error) {
+//     res.status(500).json({
+//       message: error.message,
+//     });
+//   }
+// };
+
+
+
 exports.getAllEvent = async (req, res) => {
   try {
-    const allEvents = await Event.find();
+    const allEvents = await Event.find()
+      .populate("category") // full category object
+      .populate("createdBy", "name email"); // only name + email
 
     if (!allEvents.length) {
       return res.status(404).json({
