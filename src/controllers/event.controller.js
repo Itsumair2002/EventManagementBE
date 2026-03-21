@@ -1,21 +1,6 @@
 const Event = require("../models/events.model");
 
 // CREATE EVENT
-// exports.createevent = async (req, res) => {
-//   try {
-//     const event = await Event.create(req.body);
-
-//     res.status(201).json({
-//       data: event,
-//       message: "Event created successfully",
-//       status_code: 201,
-//     });
-//   } catch (error) {
-//     res.status(400).json({
-//       message: error.message,
-//     });
-//   }
-// };
 
 
 exports.createevent = async (req, res) => {
@@ -68,30 +53,6 @@ exports.createevent = async (req, res) => {
 
 
 // GET ALL EVENTS
-// exports.getAllEvent = async (req, res) => {
-//   try {
-//     const allEvents = await Event.find();
-
-//     if (!allEvents.length) {
-//       return res.status(404).json({
-//         message: "No events found",
-//       });
-//     }
-
-//     res.status(200).json({
-//       events: allEvents,
-//       message: "Events fetched successfully",
-//       status_code: 200,
-//     });
-//   } catch (error) {
-//     res.status(500).json({
-//       message: error.message,
-//     });
-//   }
-// };
-
-
-
 exports.getAllEvent = async (req, res) => {
   try {
     const allEvents = await Event.find()
@@ -101,6 +62,37 @@ exports.getAllEvent = async (req, res) => {
     if (!allEvents.length) {
       return res.status(404).json({
         message: "No events found",
+      });
+    }
+
+    res.status(200).json({
+      events: allEvents,
+      message: "Events fetched successfully",
+      status_code: 200,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: error.message,
+    });
+  }
+};
+
+
+
+exports.getSingleEvent = async (req, res) => {
+  try {
+    const{id}=req?.params
+    console.log(id);
+    
+    const allEvents = await Event.findById(id)
+      .populate("category") // full category object
+      .populate("createdBy", "name email"); // only name + email
+    console.log("allEvents",allEvents);
+    
+    if (!allEvents) {
+      return res.status(422).json({
+        message: "No events found",
+        status_code:422
       });
     }
 

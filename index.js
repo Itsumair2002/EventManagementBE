@@ -5,6 +5,7 @@ const cors = require("cors");
 const categoryRoutes = require("./src/routes/category.routes");
 const authRoutes = require("./src/routes/auth.routes");
 const eventRoutes = require("./src/routes/event.routes");
+const bookingRoutes = require("./src/routes/booking.routes");
 
 dotenv.config();
 
@@ -23,6 +24,7 @@ mongoose
 app.use("/api/categories", categoryRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/event", eventRoutes);
+app.use("/api/bookings", bookingRoutes);
 
 const PORT = 8000;
 app.listen(PORT, () => {
