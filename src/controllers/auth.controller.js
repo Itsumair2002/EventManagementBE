@@ -19,8 +19,14 @@ exports.registerUser = async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(password, salt);
 
+    const names = fullName.split(" ");
+    const firstName = names[0] || "";
+    const lastName = names.slice(1).join(" ") || "";
+
     const user = await User.create({
       fullName,
+      firstName,
+      lastName,
       email,
       phoneNumber,
       passwordHash,
@@ -101,4 +107,42 @@ exports.loginUser = async (req, res) => {
 //   }
 // };
 
-// createAdmin();
+// CHANGE PASSWORD
+exports.changePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword, confirmPassword } = req.body;
+    const userId = req.user.userId;
+
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      return res.status(400).json({ message: "All password fields are required" });
+    }
+
+    if (newPassword !== confirmPassword) {
+      return res.status(400).json({ message: "New passwords do not match" });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const isMatch = await bcrypt.compare(currentPassword, user.passwordHash);
+    if (!isMatch) {
+      return res.status(401).json({ message: "Incorrect current password" });
+    }
+
+    // Hash the new password
+    const salt = await bcrypt.genSalt(10);
+    user.passwordHash = await bcrypt.hash(newPassword, salt);
+    
+    user.updatedAt = Date.now();
+    await user.save();
+
+    res.status(200).json({
+      message: "Password updated successfully",
+      status_code: 200
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};

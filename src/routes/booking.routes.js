@@ -4,7 +4,8 @@ const router = express.Router();
 const {
   createBooking,
   getUserBookings,
-  getSingleBooking
+  getSingleBooking,
+  downloadBookingPDF
 } = require("../controllers/booking.controller");
 const { protect } = require("../middlewares/auth.middleware");
 
@@ -12,5 +13,6 @@ const { protect } = require("../middlewares/auth.middleware");
 router.post("/", protect, createBooking);
 router.get("/my-bookings", protect, getUserBookings);
 router.get("/:id", protect, getSingleBooking);
+router.get("/:id/download", protect, downloadBookingPDF);
 
 module.exports = router;

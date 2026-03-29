@@ -6,6 +6,10 @@ const categoryRoutes = require("./src/routes/category.routes");
 const authRoutes = require("./src/routes/auth.routes");
 const eventRoutes = require("./src/routes/event.routes");
 const bookingRoutes = require("./src/routes/booking.routes");
+const userRoutes = require("./src/routes/user.routes");
+const adminRoutes = require("./src/routes/admin.routes");
+
+
 
 dotenv.config();
 
@@ -25,6 +29,10 @@ app.use("/api/categories", categoryRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/event", eventRoutes);
 app.use("/api/bookings", bookingRoutes);
+app.use("/api/user", userRoutes);
+app.use("/api/admin", adminRoutes);
+
+
 
 const PORT = 8000;
 app.listen(PORT, () => {
