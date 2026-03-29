@@ -19,8 +19,9 @@ app.use(cors());
 app.use(express.json());
 
 // MongoDB connection
+const mongoURI = process.env.MONGO_URI || "mongodb://localhost:27017/eventmanagement";
 mongoose
-  .connect("mongodb://localhost:27017/eventmanagement")
+  .connect(mongoURI)
   .then(() => console.log("MongoDB connected"))
   .catch((err) => console.error(err));
 
