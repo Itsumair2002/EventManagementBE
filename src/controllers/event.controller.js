@@ -38,8 +38,14 @@ exports.createevent = async (req, res) => {
 
     const savedEvent = await newEvent.save();
 
+    const eventObj = savedEvent.toObject();
+    if (eventObj.imageUrl) {
+      eventObj.imageUrl = `/uploads/${eventObj.imageUrl}`;
+
+    }
+
     res.status(201).json({
-      data: savedEvent,
+      data: eventObj,
       message: "Event created successfully",
       status_code: 201,
     });
@@ -65,11 +71,20 @@ exports.getAllEvent = async (req, res) => {
       });
     }
 
+    const eventsWithImageUrl = allEvents.map((event) => {
+      const eventObj = event.toObject();
+      if (eventObj.imageUrl) {
+        eventObj.imageUrl = `/uploads/${eventObj.imageUrl}`;
+      }
+      return eventObj;
+    });
+
     res.status(200).json({
-      events: allEvents,
+      events: eventsWithImageUrl,
       message: "Events fetched successfully",
       status_code: 200,
     });
+
   } catch (error) {
     res.status(500).json({
       message: error.message,
@@ -81,23 +96,29 @@ exports.getAllEvent = async (req, res) => {
 
 exports.getSingleEvent = async (req, res) => {
   try {
-    const{id}=req?.params
+    const { id } = req?.params
     console.log(id);
-    
+
     const allEvents = await Event.findById(id)
       .populate("category") // full category object
       .populate("createdBy", "name email"); // only name + email
-    console.log("allEvents",allEvents);
-    
+    console.log("allEvents", allEvents);
+
     if (!allEvents) {
       return res.status(422).json({
         message: "No events found",
-        status_code:422
+        status_code: 422
       });
     }
 
+    const eventObj = allEvents.toObject();
+    if (eventObj.imageUrl) {
+      eventObj.imageUrl = `/uploads/${eventObj.imageUrl}`;
+
+    }
+
     res.status(200).json({
-      events: allEvents,
+      events: eventObj,
       message: "Events fetched successfully",
       status_code: 200,
     });
@@ -111,9 +132,14 @@ exports.getSingleEvent = async (req, res) => {
 // UPDATE EVENT
 exports.updateEvent = async (req, res) => {
   try {
+    const updateData = { ...req.body };
+    if (req.file) {
+      updateData.imageUrl = req.file.filename;
+    }
+
     const updatedEvent = await Event.findByIdAndUpdate(
       req.params.id,
-      req.body,
+      updateData,
       { new: true }
     );
 
@@ -123,9 +149,16 @@ exports.updateEvent = async (req, res) => {
       });
     }
 
+    const eventObj = updatedEvent.toObject();
+    if (eventObj.imageUrl) {
+      eventObj.imageUrl = `/uploads/${eventObj.imageUrl}`;
+
+    }
+
     res.status(200).json({
-      event: updatedEvent,
+      event: eventObj,
       message: "Event updated successfully",
+      status_code: 200
     });
   } catch (error) {
     res.status(400).json({
@@ -142,15 +175,21 @@ exports.deleteEvent = async (req, res) => {
     if (!deletedEvent) {
       return res.status(404).json({
         message: "Event not found",
+        status_code: 404,
+        status: false
       });
     }
 
     res.status(200).json({
       message: "Event deleted successfully",
+      status_code: 200,
+      status: true
     });
   } catch (error) {
     res.status(500).json({
       message: error.message,
+      status_code: 500,
+      status: false
     });
   }
 };

@@ -18,14 +18,22 @@ exports.getAllBookings = async (req, res) => {
       .limit(limit * 1)
       .skip((page - 1) * limit);
 
+    const bookingsWithImageUrl = bookings.map((booking) => {
+      const bookingObj = booking.toObject();
+      if (bookingObj.eventId && bookingObj.eventId.imageUrl) {
+        bookingObj.eventId.imageUrl = `/uploads/${bookingObj.eventId.imageUrl}`;
+      }
+      return bookingObj;
+    });
+
     res.status(200).json({
       success: true,
       count: bookings.length,
       totalBookings,
       currentPage: parseInt(page),
       totalPages: Math.ceil(totalBookings / limit),
-      bookings,
-      status_code: 200
+      bookings: bookingsWithImageUrl,
+      status_code: 200,
     });
   } catch (error) {
     res.status(500).json({

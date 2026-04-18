@@ -118,10 +118,18 @@ exports.getUserBookings = async (req, res) => {
       .populate("eventId", "eventName eventDate venue location imageUrl price")
       .sort({ bookingDate: -1 });
 
+    const bookingsWithImageUrl = bookings.map((booking) => {
+      const bookingObj = booking.toObject();
+      if (bookingObj.eventId && bookingObj.eventId.imageUrl) {
+        bookingObj.eventId.imageUrl = `/uploads/${bookingObj.eventId.imageUrl}`;
+      }
+      return bookingObj;
+    });
+
     res.status(200).json({
       message: "Bookings retrieved successfully",
-      bookings,
-      status_code: 200
+      bookings: bookingsWithImageUrl,
+      status_code: 200,
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -141,10 +149,15 @@ exports.getSingleBooking = async (req, res) => {
       return res.status(404).json({ message: "Booking not found" });
     }
 
+    const bookingObj = booking.toObject();
+    if (bookingObj.eventId && bookingObj.eventId.imageUrl) {
+      bookingObj.eventId.imageUrl = `/uploads/${bookingObj.eventId.imageUrl}`;
+    }
+
     res.status(200).json({
       message: "Booking retrieved successfully",
-      booking,
-      status_code: 200
+      booking: bookingObj,
+      status_code: 200,
     });
   } catch (error) {
     res.status(500).json({ message: error.message });

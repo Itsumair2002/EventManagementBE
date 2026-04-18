@@ -17,6 +17,7 @@ const app = express();
 app.use(cors());
 //app.options("*", cors());
 app.use(express.json());
+app.use("/uploads", express.static("uploads"));
 
 // MongoDB connection
 const mongoURI = process.env.MONGO_URI || "mongodb://localhost:27017/eventmanagement";
