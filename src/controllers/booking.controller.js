@@ -5,6 +5,7 @@ const https = require("https");
 const sendEmail = require("../utils/sendEmail");
 const { generateTicketPDF } = require("../utils/ticketGenerator");
 const User = require("../models/users.model");
+const { invalidateUser } = require("../services/recommendation.service");
 
 
 
@@ -58,6 +59,9 @@ exports.createBooking = async (req, res) => {
     // Update event available seats
     event.availableSeats -= numberOfTickets;
     await event.save();
+
+    // New booking changes this user's taste profile — refresh their recs.
+    invalidateUser(userId?.toString());
 
     // SEND EMAIL WITH TICKET
     try {

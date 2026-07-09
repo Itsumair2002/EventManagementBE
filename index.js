@@ -8,6 +8,12 @@ const eventRoutes = require("./src/routes/event.routes");
 const bookingRoutes = require("./src/routes/booking.routes");
 const userRoutes = require("./src/routes/user.routes");
 const adminRoutes = require("./src/routes/admin.routes");
+const aiRoutes = require("./src/routes/ai.routes");
+
+
+
+dotenv.config();
+
 
 
 
@@ -21,6 +27,7 @@ app.use("/uploads", express.static("uploads"));
 
 // MongoDB connection
 const mongoURI = process.env.MONGO_URI || "mongodb://localhost:27017/eventmanagement";
+console.log("Backend connecting to URI:", mongoURI);
 mongoose
   .connect(mongoURI)
   .then(() => console.log("MongoDB connected"))
@@ -33,6 +40,7 @@ app.use("/api/event", eventRoutes);
 app.use("/api/bookings", bookingRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/ai", aiRoutes);
 
 
 
@@ -40,3 +48,4 @@ const PORT = 8000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+// Trigger restart to load updated user API key in new project env context
