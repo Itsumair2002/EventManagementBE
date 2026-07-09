@@ -1,4 +1,8 @@
 const express = require("express");
+const dns = require("dns");
+if (dns.setDefaultResultOrder) {
+  dns.setDefaultResultOrder("ipv4first");
+}
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const cors = require("cors");
