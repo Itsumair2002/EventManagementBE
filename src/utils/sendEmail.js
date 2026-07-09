@@ -34,6 +34,7 @@ const sendEmail = async (options) => {
   const transporter = nodemailer.createTransport({
     ...transportConfig,
     auth: { user: SMTP_MAIL, pass: SMTP_PASSWORD },
+    family: 4, // Force IPv4 to prevent ENETUNREACH errors on Render
   });
 
   const mailOptions = {
