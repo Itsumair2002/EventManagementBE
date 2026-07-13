@@ -21,15 +21,15 @@ const sendEmail = async (options) => {
     );
   }
 
-  // Prefer a well-known service (handles host/port/TLS automatically);
-  // fall back to explicit host/port if provided.
-  const transportConfig = SMTP_SERVICE
-    ? { service: SMTP_SERVICE }
-    : {
-        host: SMTP_HOST || "smtp.gmail.com",
-        port: Number(SMTP_PORT) || 465,
-        secure: (Number(SMTP_PORT) || 465) === 465,
-      };
+  // Prefer explicit host/port config for Gmail/SMTP instead of service presets
+  // to ensure 'family: 4' (IPv4 only) is strictly passed to the net socket.
+  const host = SMTP_HOST || (SMTP_SERVICE === "gmail" ? "smtp.gmail.com" : null);
+  const port = SMTP_PORT ? Number(SMTP_PORT) : 465;
+  const secure = SMTP_PORT ? Number(SMTP_PORT) === 465 : true;
+
+  const transportConfig = host 
+    ? { host, port, secure }
+    : { service: SMTP_SERVICE || "gmail" };
 
   const transporter = nodemailer.createTransport({
     ...transportConfig,
