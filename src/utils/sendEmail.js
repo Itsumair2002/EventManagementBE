@@ -1,28 +1,82 @@
 const nodemailer = require("nodemailer");
+const https = require("https");
+
+/**
+ * Helper to send email via Resend's REST API.
+ * This runs over standard HTTPS (port 443) which is never blocked by cloud firewalls.
+ */
+const sendResendEmail = (options) => {
+  return new Promise((resolve, reject) => {
+    const payload = JSON.stringify({
+      from: "VibeCheck <onboarding@resend.dev>",
+      to: options.email,
+      subject: options.subject,
+      html: options.message,
+      attachments: options.attachmentBuffer
+        ? [
+            {
+              content: options.attachmentBuffer.toString("base64"),
+              filename: options.attachmentName || "ticket.pdf"
+            }
+          ]
+        : []
+    });
+
+    const reqOptions = {
+      hostname: "api.resend.com",
+      path: "/emails",
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${process.env.RESEND_API_KEY}`,
+        "Content-Type": "application/json",
+        "Content-Length": Buffer.byteLength(payload)
+      }
+    };
+
+    const req = https.request(reqOptions, (res) => {
+      let data = "";
+      res.on("data", (chunk) => { data += chunk; });
+      res.on("end", () => {
+        if (res.statusCode >= 200 && res.statusCode < 300) {
+          try {
+            resolve(JSON.parse(data));
+          } catch (e) {
+            resolve(data);
+          }
+        } else {
+          reject(new Error(`Resend API returned status ${res.statusCode}: ${data}`));
+        }
+      });
+    });
+
+    req.on("error", (err) => {
+      reject(err);
+    });
+
+    req.write(payload);
+    req.end();
+  });
+};
 
 /**
  * Sends an email with an optional PDF attachment.
- * @param {Object} options - { email, subject, message, attachmentBuffer, attachmentName }
- *
- * Required env vars:
- *   SMTP_MAIL      - sender address (e.g. yourname@gmail.com)
- *   SMTP_PASSWORD  - app password (NOT your normal login password for Gmail)
- * Optional:
- *   SMTP_SERVICE   - well-known provider, e.g. "gmail" (recommended)
- *   SMTP_HOST/PORT - explicit server if not using SMTP_SERVICE
+ * Uses Resend API if RESEND_API_KEY is configured (ideal for Render),
+ * otherwise falls back to standard SMTP (ideal for local development).
  */
 const sendEmail = async (options) => {
+  if (process.env.RESEND_API_KEY) {
+    console.log("Sending email via Resend HTTPS API...");
+    return sendResendEmail(options);
+  }
+
   const { SMTP_SERVICE, SMTP_HOST, SMTP_PORT, SMTP_MAIL, SMTP_PASSWORD } = process.env;
 
   if (!SMTP_MAIL || !SMTP_PASSWORD) {
     throw new Error(
-      "Email not configured: set SMTP_MAIL and SMTP_PASSWORD in .env " +
-      "(for Gmail, SMTP_PASSWORD must be an App Password — see https://myaccount.google.com/apppasswords)"
+      "Email not configured: set SMTP_MAIL and SMTP_PASSWORD in .env (or configure RESEND_API_KEY)"
     );
   }
 
-  // Default to port 587 (STARTTLS) for Gmail if port isn't explicitly set,
-  // as port 587 is less likely to be blocked/time out in cloud hosting environments like Render.
   const host = SMTP_HOST || (SMTP_SERVICE === "gmail" ? "smtp.gmail.com" : null);
   const port = SMTP_PORT ? Number(SMTP_PORT) : 587;
   const secure = SMTP_PORT ? Number(SMTP_PORT) === 465 : false;
