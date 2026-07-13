@@ -36,7 +36,7 @@ const sendEmail = async (options) => {
     to: options.email,
     subject: options.subject,
     html: options.message,
-    attachments: options.attachmentBuffer
+    attachments: options.attachments || (options.attachmentBuffer
       ? [
           {
             filename: options.attachmentName || "ticket.pdf",
@@ -44,7 +44,7 @@ const sendEmail = async (options) => {
             contentType: "application/pdf",
           },
         ]
-      : [],
+      : []),
   };
 
   await transporter.sendMail(mailOptions);

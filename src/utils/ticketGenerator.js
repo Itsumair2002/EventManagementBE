@@ -1,7 +1,7 @@
 const PDFDocument = require("pdfkit");
 const https = require("https");
 
-const generateTicketPDF = async (booking, event) => {
+const generateTicketPDF = async (item, event) => {
   return new Promise(async (resolve, reject) => {
     try {
       const doc = new PDFDocument({ size: "A4", margin: 40 });
@@ -9,6 +9,15 @@ const generateTicketPDF = async (booking, event) => {
       doc.on("data", (chunk) => chunks.push(chunk));
       doc.on("end", () => resolve(Buffer.concat(chunks)));
       doc.on("error", (err) => reject(err));
+
+      // Dynamic checks for Ticket vs Booking
+      const isTicket = !!item.ticketCode;
+      const holderName = isTicket ? (item.ownerEmail) : (item.userId?.fullName || "N/A");
+      const idLabel = isTicket ? "Ticket Code:" : "Booking ID:";
+      const idValue = isTicket ? item.ticketCode : item._id.toString();
+      const seatsCount = isTicket ? "1 Seat (Individual)" : `${item.numberOfTickets} Seat(s)`;
+      const priceLabel = isTicket ? "Price:" : "Total Paid:";
+      const priceValue = isTicket ? `Rs. ${event.price}` : `Rs. ${item.totalAmount}`;
 
       // Color Palette
       const primaryColor = "#1a237e"; // Deep Indigo
@@ -25,7 +34,7 @@ const generateTicketPDF = async (booking, event) => {
          .text("EVENT TICKET", 40, 50, { characterSpacing: 2 });
       
       doc.fontSize(12).font("Helvetica")
-         .text("Booking Confirmation", 40, 95, { characterSpacing: 1 });
+         .text(isTicket ? "Individual Admission Pass" : "Booking Confirmation", 40, 95, { characterSpacing: 1 });
 
       // Event Title
       doc.fontSize(20).font("Helvetica-Bold")
@@ -52,7 +61,7 @@ const generateTicketPDF = async (booking, event) => {
       let qrBuffer = null;
       try {
         qrBuffer = await new Promise((res, rej) => {
-          https.get(booking.qrCodeUrl, (response) => {
+          https.get(item.qrCodeUrl, (response) => {
             const data = [];
             response.on("data", (chunk) => data.push(chunk));
             response.on("end", () => res(Buffer.concat(data)));
@@ -79,20 +88,20 @@ const generateTicketPDF = async (booking, event) => {
       doc.font("Helvetica").text(event?.eventDate ? new Date(event.eventDate).toLocaleTimeString() : "N/A", col1X + 50, ticketTop + 130);
 
       // Booking Information (Right Column)
-      doc.fillColor(textColor).font("Helvetica-Bold").fontSize(14).text("BOOKING DETAILS", col2X, ticketTop + 20);
+      doc.fillColor(textColor).font("Helvetica-Bold").fontSize(14).text(isTicket ? "TICKET DETAILS" : "BOOKING DETAILS", col2X, ticketTop + 20);
       doc.moveTo(col2X, ticketTop + 40).lineTo(doc.page.width - 60, ticketTop + 40).stroke();
 
       doc.fontSize(10).font("Helvetica-Bold").text("Ticket Holder:", col2X, ticketTop + 55);
-      doc.font("Helvetica").fontSize(10).text(booking.userId?.fullName || "N/A", col2X + 80, ticketTop + 55);
+      doc.font("Helvetica").fontSize(9).text(holderName, col2X + 80, ticketTop + 55);
 
-      doc.fontSize(10).font("Helvetica-Bold").text("Booking ID:", col2X, ticketTop + 75);
-      doc.font("Helvetica").fontSize(8).text(booking._id.toString(), col2X + 80, ticketTop + 75);
+      doc.fontSize(10).font("Helvetica-Bold").text(idLabel, col2X, ticketTop + 75);
+      doc.font("Helvetica").fontSize(8).text(idValue, col2X + 80, ticketTop + 75);
 
       doc.fontSize(10).font("Helvetica-Bold").text("Tickets:", col2X, ticketTop + 95);
-      doc.font("Helvetica").fontSize(10).text(`${booking.numberOfTickets} Seat(s)`, col2X + 80, ticketTop + 95);
+      doc.font("Helvetica").fontSize(10).text(seatsCount, col2X + 80, ticketTop + 95);
 
-      doc.fontSize(10).font("Helvetica-Bold").text("Total Paid:", col2X, ticketTop + 115);
-      doc.font("Helvetica-Bold").fontSize(12).fillColor(primaryColor).text(`Rs. ${booking.totalAmount}`, col2X + 80, ticketTop + 115);
+      doc.fontSize(10).font("Helvetica-Bold").text(priceLabel, col2X, ticketTop + 115);
+      doc.font("Helvetica-Bold").fontSize(12).fillColor(primaryColor).text(priceValue, col2X + 80, ticketTop + 115);
 
       // QR Code Section
       doc.fillColor(textColor).font("Helvetica-Bold").fontSize(12).text("SCAN TO VERIFY", col2X, ticketTop + 160);
