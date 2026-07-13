@@ -31,10 +31,13 @@ const sendEmail = async (options) => {
     ? { host, port, secure }
     : { service: SMTP_SERVICE || "gmail" };
 
+  const dns = require("dns");
   const transporter = nodemailer.createTransport({
     ...transportConfig,
     auth: { user: SMTP_MAIL, pass: SMTP_PASSWORD },
-    family: 4, // Force IPv4 to prevent ENETUNREACH errors on Render
+    lookup: (hostname, options, callback) => {
+      return dns.lookup(hostname, { ...options, family: 4 }, callback);
+    }
   });
 
   const mailOptions = {
