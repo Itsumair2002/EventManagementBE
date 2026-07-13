@@ -21,11 +21,11 @@ const sendEmail = async (options) => {
     );
   }
 
-  // Prefer explicit host/port config for Gmail/SMTP instead of service presets
-  // to ensure 'family: 4' (IPv4 only) is strictly passed to the net socket.
+  // Default to port 587 (STARTTLS) for Gmail if port isn't explicitly set,
+  // as port 587 is less likely to be blocked/time out in cloud hosting environments like Render.
   const host = SMTP_HOST || (SMTP_SERVICE === "gmail" ? "smtp.gmail.com" : null);
-  const port = SMTP_PORT ? Number(SMTP_PORT) : 465;
-  const secure = SMTP_PORT ? Number(SMTP_PORT) === 465 : true;
+  const port = SMTP_PORT ? Number(SMTP_PORT) : 587;
+  const secure = SMTP_PORT ? Number(SMTP_PORT) === 465 : false;
 
   const transportConfig = host 
     ? { host, port, secure }
