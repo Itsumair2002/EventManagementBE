@@ -71,7 +71,7 @@ exports.createBooking = async (req, res) => {
         const populatedBooking = await Booking.findById(booking._id).populate("userId", "fullName email");
         const pdfBuffer = await generateTicketPDF(populatedBooking, event);
 
-        sendEmail({
+        await sendEmail({
           email: user.email,
           subject: `Your Ticket Confirmation for ${event.eventName} - VibeCheck`,
           message: `
@@ -96,12 +96,11 @@ exports.createBooking = async (req, res) => {
           `,
           attachmentBuffer: pdfBuffer,
           attachmentName: `Ticket-${event.eventName.replace(/\s+/g, "_")}.pdf`
-        }).catch((emailError) => {
-          console.error("Email Sending Failed in background:", emailError);
         });
       }
-    } catch (pdfOrDbError) {
-      console.error("PDF generation or user fetch failed:", pdfOrDbError);
+    } catch (emailError) {
+      console.error("Email Sending Failed:", emailError);
+      // We don't want to fail the whole booking if email fails, but we should log it.
     }
 
     res.status(201).json({
