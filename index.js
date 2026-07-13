@@ -1,5 +1,7 @@
 const express = require("express");
 const dns = require("dns");
+console.log("=== Node Runtime Version ===", process.version);
+console.log("=== dns.setDefaultResultOrder exists ===", typeof dns.setDefaultResultOrder);
 if (dns.setDefaultResultOrder) {
   dns.setDefaultResultOrder("ipv4first");
 }
